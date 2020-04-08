@@ -1,8 +1,8 @@
-# Xiaomi Mi Flora Plant sensors
+# Xiaomi Flora Plant sensors
 
-This [PlatformIO](https://platformio.org) project implements an ESP32 BLE client for Xiaomi Mi Flora Plant sensors, pushing the measurements in json format to a MQTT broker.
+This [PlatformIO](https://platformio.org) project implements an ESP32 BLE client for Xiaomi Flora Plant sensors, pushing the measurements in json format to a MQTT broker.
 
-![xiaomi-miflora](xiaomi-miflora.png)
+![xiaomi-flora](xiaomi-miflora.png)
 
 ## Features
 Base on the great work of @sidddy and @jvyoralek (and all other contributors), this project adds:
@@ -19,7 +19,7 @@ __* note : tested with a maximum of 8 Miflora sensors configured, however the ES
 
 Hardware:
 - ESP32 device ([ESP32 at AliExpress](https://nl.aliexpress.com/wholesale?catId=0&initiative_id=SB_20200408062838&SearchText=MH-ET+Live+ESP32))
-- Xiaomi Mi Plant Sensor (firmware revision >= 2.6.6) ([Xiaomi flora at AliExpress](https://nl.aliexpress.com/wholesale?catId=0&initiative_id=SB_20200408063038&SearchText=xiaomi+flora))
+- Xiaomi Flora Plant Sensor (firmware revision >= 2.6.6) ([Xiaomi flora at AliExpress](https://nl.aliexpress.com/wholesale?catId=0&initiative_id=SB_20200408063038&SearchText=xiaomi+flora))
 
 Software:
 - MQTT broker (e.g. [Mosquitto](https://mosquitto.org))
@@ -29,7 +29,7 @@ Assumed you are familiar with [Visual Studo Code](https://code.visualstudio.com)
 
 1) Open the project in Visual Studio Code with PlatformIO installed
 2) Copy `example/config.h.example` to `include/config.h` and update settings according to your environment:
-    - MAC address(es), location(s) and plant id(s) of your Xiaomi Mi Plant sensor(s)
+    - MAC address(es), location(s) and plant id(s) of your Xiaomi Flora Plant sensor(s)
     - Device id
     - WLAN Settings
     - MQTT Settings
