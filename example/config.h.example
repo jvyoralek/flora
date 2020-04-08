@@ -1,0 +1,32 @@
+// Array of different Xiaomi Miflora MAC addresses, their location and plant id
+String FLORA_DEVICES[][3] = {
+    // <mac_address>, <location>, <plant_id>
+    // {"C4:7C:8D:67:57:07", "livingroom", "calathea-1"},
+    // {"C4:7C:8D:67:58:A0", "livingroom", "ficus-1"},
+    // {"C4:7C:8D:6A:0D:2F", "livingroom", "palm-1"},
+    // {"C4:7C:8D:6A:0F:9B", "livingroom", "orchid-1"},
+    {"C4:7C:8D:6A:0C:36", "livingroom", "orchid-2"},
+    {"C4:7C:8D:6A:11:65", "livingroom", "orchid-3"},
+    // {"C4:7C:8D:6A:0C:8A", "diningroom", "orchid-4"},
+    // {"C4:7C:8D:6A:10:36", "diningroom", "orchid-5"},
+};
+
+#define DEVICE_ID "esp32-1"        // Identifier of the esp32 device
+#define SLEEP_DURATION 15 * 60     // Sleep between to runs in seconds
+#define EMERGENCY_HIBERNATE 1 * 60 // Emergency hibernate countdown in seconds
+#define BATTERY_INTERVAL 1         // How often should the battery be read - in run count
+#define BATTERY_THRESHOLD 20       // Battery threshold when battery gets low
+#define RETRY 5                    // How often should a device be retried in a run when something fails
+
+// Wifi settings
+#define WIFI_SSID "your_wifi_ssdi"           // SSID of your WiFi network
+#define WIFI_PASSWORD "<your_wifi_password>" // Password of your WiFi network
+
+// Mqtt settings
+#define MQTT_HOST "<your_mqtt_broker_ipaddress>" // Mqtt broker ip address or hostname
+#define MQTT_PORT 1883                           // Mqqt port (default: 1883)
+#define MQTT_USERNAME "miflora"                  // Mqtt username [optional]
+#define MQTT_PASSWORD "miflora"                  // Mqtt username [optional]
+#define MQTT_BASE_TOPIC "miflora"                // The Miflora base topic
+#define MQTT_RETRY_WAIT 5000                     // Retry delay between attempts to connect to the Mqtt broker
+#define MQTT_RETAIN false                        // Retain Mqtt messages (default: false)
