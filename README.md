@@ -25,9 +25,9 @@ Software:
 - MQTT broker (e.g. [Mosquitto](https://mosquitto.org))
 
 ## Quick setup instructions
-Assumed you are familiar with Visual Code and PlatformIO. 
+Assumed you are familiar with [Visual Studo Code](https://code.visualstudio.com) and [PlatformIO](https://platformio.org). 
 
-1) Open the project in Visual Code with PlatformIO installed
+1) Open the project in Visual Studio Code with PlatformIO installed
 2) Copy `example/config.h.example` to `include/config.h` and update settings according to your environment:
     - MAC address(es), location(s) and plant id(s) of your Xiaomi Mi Plant sensor(s)
     - Device id
