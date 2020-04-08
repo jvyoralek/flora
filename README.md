@@ -5,11 +5,13 @@ This [Platform.io](https://platformio.org) project implements an ESP32 BLE clien
 ## Features
 Base on the great work of @sidddy and @jvyoralek (and all other contributors), this project adds:
 
-- Support for multiple Miflora sensors with friendly named topics
+- Support for multiple* Miflora sensors with friendly named topics
 - Payloads in json format
 - Device (Wifi) status and lwt (last will and testament)
 - Seperate configurable (sub) topics
 - Battery low status (configurable by threshold)
+
+__* note : tested with a maximum of 8 Miflora sensors configured, however the ESP32 for some unknown reason get's stuck sometimes. With 4 Miflora sensors configured the ESP32 looks stable and therefore it's advisable to configure a maximum of 4 Miflora sensors per ESP32.__
 
 ## Technical requirements
 
