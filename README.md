@@ -18,8 +18,8 @@ __* note : tested with a maximum of 8 Miflora sensors configured, however the ES
 ## Technical requirements
 
 Hardware:
-- ESP32 device
-- Xiaomi Mi Plant Sensor (firmware revision >= 2.6.6)
+- ESP32 device ([ESP32 at AliExpress](https://nl.aliexpress.com/wholesale?catId=0&initiative_id=SB_20200408062838&SearchText=MH-ET+Live+ESP32))
+- Xiaomi Mi Plant Sensor (firmware revision >= 2.6.6) ([Xiaomi flora at AliExpress](https://nl.aliexpress.com/wholesale?catId=0&initiative_id=SB_20200408063038&SearchText=xiaomi+flora))
 
 Software:
 - MQTT broker (e.g. [Mosquitto](https://mosquitto.org))
