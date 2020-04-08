@@ -2,6 +2,8 @@
 
 This [Platform.io](https://platformio.org) project implements an ESP32 BLE client for Xiaomi Mi Flora Plant sensors, pushing the measurements in json format to a MQTT broker.
 
+![xiaomi-miflora](xiaomi-miflora.jpeg)
+
 ## Features
 Base on the great work of @sidddy and @jvyoralek (and all other contributors), this project adds:
 
