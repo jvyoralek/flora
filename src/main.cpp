@@ -1,4 +1,12 @@
 #include <Arduino.h>
+#include <BLEDevice.h>
+#include <WiFi.h>
+#include <WiFiUdp.h>
+#include <ArduinoJson.h>
+#include "PubSubClient.h"
+#include "config.h"
+#include "Sensor.h"
+
 /**
    A BLE client for the Xiaomi Mi Plant Sensor, pushing measurements to an MQTT server.
 
@@ -32,13 +40,6 @@
    SOFTWARE.
 */
 
-#include <BLEDevice.h>
-#include <WiFi.h>
-#include <WiFiUdp.h>
-#include <ArduinoJson.h>
-#include "PubSubClient.h"
-#include "config.h"
-
 // device count
 static const int deviceCount = sizeof FLORA_DEVICES / sizeof FLORA_DEVICES[0];
 
@@ -60,7 +61,7 @@ static const String sensorBaseTopic = String(MQTT_BASE_TOPIC) + "/" + String(DEV
 static const size_t deviceCapacity = JSON_OBJECT_SIZE(5) + 80;
 
 // the capacity of the sensor json document
-static const size_t sensorCapacity = JSON_OBJECT_SIZE(10) + 140;
+static const size_t sensorCapacity = JSON_OBJECT_SIZE(15) + 220;
 
 // boot count used to check if battery status should be read
 RTC_DATA_ATTR int bootCount = 0;
@@ -84,7 +85,7 @@ void connectWifi(ArduinoJson::JsonDocument &jsonDocument)
   Serial.println("\nWiFi connected\n");
 
   jsonDocument["id"] = DEVICE_ID;
-  jsonDocument["ipaddress"] = WiFi.localIP().toString();
+  jsonDocument["ipAddress"] = WiFi.localIP().toString();
   jsonDocument["mac"] = WiFi.macAddress();
   jsonDocument["channel"] = WiFi.channel();
   jsonDocument["rssi"] = WiFi.RSSI();
@@ -107,7 +108,7 @@ void connectMqtt()
   String mqttClientId = String(DEVICE_ID) + "_" + part;
 
   Serial.printf("- MQTT Client ID: %s\n", mqttClientId.c_str());
-  
+
   while (!client.connected())
   {
     if (!client.connect(mqttClientId.c_str(), MQTT_USERNAME, MQTT_PASSWORD, lwtTopic.c_str(), 1, true, "offline"))
@@ -200,7 +201,23 @@ bool forceFloraServiceDataMode(BLERemoteService *floraService)
   return true;
 }
 
-bool readFloraDataCharacteristic(BLERemoteService *floraService, ArduinoJson::JsonDocument &jsonDocument)
+byte calculateMeasurementLevel(int current, int min, int max)
+{
+  if (current <= min)
+  {
+    return 0; // low
+  }
+  else if (current >= max)
+  {
+    return 2; // high
+  }
+  else
+  {
+    return 1; // medium
+  }
+}
+
+bool readFloraDataCharacteristic(BLERemoteService *floraService, ArduinoJson::JsonDocument& jsonDocument, Sensor sensor)
 {
   BLERemoteCharacteristic *floraCharacteristic = nullptr;
 
@@ -282,14 +299,18 @@ bool readFloraDataCharacteristic(BLERemoteService *floraService, ArduinoJson::Js
 
   // add all valid measurment values to the json
   jsonDocument["temperature"] = temperature;
+  jsonDocument["temperatureLevel"] = calculateMeasurementLevel((int)temperature, sensor.getMinTemperature(), sensor.getMaxTemperature());
   jsonDocument["moisture"] = moisture;
+  jsonDocument["moistureLevel"] = calculateMeasurementLevel(moisture, sensor.getMinMoisture(), sensor.getMaxMoisture());
   jsonDocument["light"] = light;
+  jsonDocument["lightLevel"] = calculateMeasurementLevel(light, sensor.getMinLight(), sensor.getMaxLight());
   jsonDocument["conductivity"] = conductivity;
+  jsonDocument["conductivityLevel"] = calculateMeasurementLevel(conductivity, sensor.getMinLight(), sensor.getMaxLight());
 
   return true;
 }
 
-bool readFloraBatteryCharacteristic(BLERemoteService *floraService, ArduinoJson::JsonDocument &jsonDocument)
+bool readFloraBatteryCharacteristic(BLERemoteService *floraService, ArduinoJson::JsonDocument& jsonDocument)
 {
   BLERemoteCharacteristic *floraCharacteristic = nullptr;
 
@@ -326,12 +347,13 @@ bool readFloraBatteryCharacteristic(BLERemoteService *floraService, ArduinoJson:
   int battery = val2[0];
 
   jsonDocument["battery"] = battery;
-  jsonDocument["batterylow"] = battery <= BATTERY_THRESHOLD;
+  jsonDocument["batteryLow"] = battery <= BATTERY_THRESHOLD_LOW;
+  jsonDocument["batteryLevel"] = calculateMeasurementLevel(battery, String(BATTERY_THRESHOLD_LOW).toInt(), String(BATTERY_THRESHOLD_MED).toInt());
 
   return true;
 }
 
-bool processFloraService(BLERemoteService *floraService, const char *deviceMacAddress, bool readBattery, ArduinoJson::JsonDocument &jsonDocument)
+bool processFloraService(BLERemoteService *floraService, bool readBattery, ArduinoJson::JsonDocument& jsonDocument, Sensor sensor)
 {
   // set device in data mode
   if (!forceFloraServiceDataMode(floraService))
@@ -339,7 +361,7 @@ bool processFloraService(BLERemoteService *floraService, const char *deviceMacAd
     return false;
   }
 
-  bool dataSuccess = readFloraDataCharacteristic(floraService, jsonDocument);
+  bool dataSuccess = readFloraDataCharacteristic(floraService, jsonDocument, sensor);
 
   bool batterySuccess = true;
   if (readBattery)
@@ -350,7 +372,7 @@ bool processFloraService(BLERemoteService *floraService, const char *deviceMacAd
   return dataSuccess && batterySuccess;
 }
 
-bool processFloraDevice(BLEAddress floraAddress, const char *deviceMacAddress, bool getBattery, int tryCount, ArduinoJson::JsonDocument &jsonDocument)
+bool processFloraDevice(BLEAddress floraAddress, bool getBattery, int tryCount, ArduinoJson::JsonDocument& jsonDocument, Sensor sensor)
 {
   Serial.print("Processing Flora device at ");
   Serial.print(floraAddress.toString().c_str());
@@ -374,7 +396,7 @@ bool processFloraDevice(BLEAddress floraAddress, const char *deviceMacAddress, b
   }
 
   // process devices data
-  bool success = processFloraService(floraService, deviceMacAddress, getBattery, jsonDocument);
+  bool success = processFloraService(floraService, getBattery, jsonDocument, sensor);
 
   // disconnect from device
   floraClient->disconnect();
@@ -442,27 +464,37 @@ void setup()
   for (int i = 0; i < deviceCount; i++)
   {
     Serial.println();
-    int tryCount = 0;
-    String sensorMacAddress = FLORA_DEVICES[i][0];
-    String sensorLocation = FLORA_DEVICES[i][1];
-    String sensorId = FLORA_DEVICES[i][2];
+    int retryCount = 0;
+
+    Sensor sensor;
+    sensor.setMac(FLORA_DEVICES[i][0]);
+    sensor.setLocation(FLORA_DEVICES[i][1]);
+    sensor.setPlantId(FLORA_DEVICES[i][2]);
+    sensor.setMinTemperature(FLORA_DEVICES[i][3].toInt());
+    sensor.setMaxTemperature(FLORA_DEVICES[i][4].toInt());
+    sensor.setMinMoisture(FLORA_DEVICES[i][5].toInt());
+    sensor.setMaxMoisture(FLORA_DEVICES[i][6].toInt());
+    sensor.setMinLight(FLORA_DEVICES[i][7].toInt());
+    sensor.setMaxLight(FLORA_DEVICES[i][8].toInt());
+    sensor.setMinConductivity(FLORA_DEVICES[i][9].toInt());
+    sensor.setMaxConductivity(FLORA_DEVICES[i][10].toInt());
 
     // create sensor Json Document
     DynamicJsonDocument sensorJson(sensorCapacity);
-    sensorJson["id"] = sensorId;
-    sensorJson["location"] = sensorLocation;
-    sensorJson["mac"] = sensorMacAddress;
+    sensorJson["id"] = sensor.getPlantId();
+    sensorJson["location"] = sensor.getLocation();
+    sensorJson["mac"] = sensor.getMac();
 
-    BLEAddress bleAddress(FLORA_DEVICES[i][0].c_str());
-    while (tryCount < RETRY)
+    BLEAddress bleAddress(sensor.getMac().c_str());
+    while (retryCount < SENSOR_RETRY)
     {
-      tryCount++;
-      sensorJson["retrycount"] = tryCount;
+      retryCount++;
+      sensorJson["retryCount"] = retryCount;
 
       // create sensor topic
-      String sensorTopic = sensorBaseTopic + "/" + sensorLocation + "/" + sensorId;
+      String sensorTopic = sensorBaseTopic + "/" + sensor.getLocation() + "/" + sensor.getPlantId();
 
-      if (processFloraDevice(bleAddress, sensorMacAddress.c_str(), readBattery, tryCount, sensorJson))
+      if (processFloraDevice(bleAddress, readBattery, retryCount, sensorJson, sensor))
       {
         char payload[sensorCapacity];
         serializeJson(sensorJson, payload);

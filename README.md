@@ -5,17 +5,19 @@ This [PlatformIO](https://platformio.org) project implements an ESP32 BLE client
 ![xiaomi-flora](xiaomi-miflora.png)
 
 ## Features
+
 Base on the great work of @sidddy and @jvyoralek (and all other contributors), this project adds:
 
-- Support for multiple* Miflora sensors with friendly named topics
+- Support for multiple Miflora sensors with friendly named topics
 - Payloads in json format
 - Device (Wifi) status and lwt (last will and testament)
 - Seperate configurable (sub) topics
-- Battery low status (configurable by threshold)
+- Measurement levels (configurable by min, max values)
+- Battery low status and battery level (configurable by thresholds)
 
-__* note : tested with a maximum of 8 Miflora sensors configured, however the ESP32 for some unknown reason get's stuck sometimes. With 4 Miflora sensors configured the ESP32 looks stable and therefore it's advisable to configure a maximum of 4 Miflora sensors per ESP32.__
+__Note : tested with a maximum of 8 Miflora sensors configured, however the ESP32 for some unknown reason get's stuck sometimes. With 4 Miflora sensors configured the ESP32 looks stable and therefore it's advisable to configure a maximum of 4 Miflora sensors per ESP32.__
 
-## Technical requirements
+## Technical Requirements
 
 Hardware:
 - ESP32 device ([ESP32 at AliExpress](https://nl.aliexpress.com/wholesale?catId=0&initiative_id=SB_20200408062838&SearchText=MH-ET+Live+ESP32))
@@ -24,12 +26,13 @@ Hardware:
 Software:
 - MQTT broker (e.g. [Mosquitto](https://mosquitto.org))
 
-## Quick setup instructions
+## Quick Setup Instructions
+
 Assumed you are familiar with [Visual Studo Code](https://code.visualstudio.com) and [PlatformIO](https://platformio.org). 
 
 1) Open the project in Visual Studio Code with PlatformIO installed
 2) Copy `example/config.h.example` to `include/config.h` and update settings according to your environment:
-    - MAC address(es), location(s) and plant id(s) of your Xiaomi Flora Plant sensor(s)
+    - MAC address(es), location(s), plant id(s) and min and max values of your Xiaomi Flora Plant sensor(s)
     - Device id
     - WLAN Settings
     - MQTT Settings
@@ -37,7 +40,7 @@ Assumed you are familiar with [Visual Studo Code](https://code.visualstudio.com)
     - upload_port
     - monitor_port
 
-## Measuring interval
+## Measuring Interval
 
 The ESP32 will perform a single connection attempt to the Xiaomi Mi Plant sensor, read the sensor data & push it to the MQTT server. The ESP32 will enter deep sleep mode after all sensors have been read and sleep for n minutes before repeating the exercise...
 Battery level is read every nth wakeup.
@@ -49,16 +52,18 @@ Up to n attempst per sensor are performed when reading the data fails.
 - `EMERGENCY_HIBERNATE` - how long after wakeup should the device forcefully go to sleep (e.g. when something gets stuck)?
 - `BATTERY_INTERVAL` - how often should the battery status be read?
 - `BATTERY_THRESHOLD` - when is the battery on low power?
-- `RETRY` - how ofter should a single device be tried on each run?
+- `SENSOR_RETRY` - how ofter should a single sensor be tried on each run?
 
 ## Topics
 
-The ESP32 will publish payload in json format on two base topics and are divided in two cathegories:
+The ESP32 will publish payload in json format on two base topics and are divided in two categories:
 
 ### Device topic
+
 This topic is used to publish payload related to the esp32 device status and lwt (last will and testament).
 
-#### Last Will and Testament
+#### Last will and testament
+
 When the ESP32 connects to the MQTT broker a `online` message will be published to the `/device/lwt` subtopic to indicate the ESP32 is online.
 
 Topic format: `<base_topic>/<device_id>/device/lwt`
@@ -76,6 +81,7 @@ offline
 ```
 
 #### Status
+
 The subtopic `/device/status` is used to publish payload related to ESP32 (WiFi) status.
 
 Topic format: `<base_topic>/<device_id>/device/status`
@@ -98,6 +104,7 @@ Example json payload:
  - `rssi` - Received Signal Strength Indicator
 
 ### Sensor topic
+
 This topic is used to publish payload related to the Miflora sensor measurements. Each Miflora sensor has its own subtopic. 
 
 Topic format: `<base_topic>/<device_id>/sensor/<location>/<plant_id>`
@@ -105,29 +112,41 @@ Topic format: `<base_topic>/<device_id>/sensor/<location>/<plant_id>`
 Example json payload:
 ```
 {
-    "id": "calathea-1",
+    "id": "orchid-2",
     "location": "livingroom",
-    "mac": "C4:7C:8D:67:57:07",
-    "retrycount": 1,
-    "temperature": 21,
-    "moisture": 3,
-    "light": 2117,
-    "conductivity": 10,
-    "battery": 98,
-    "batterylow": false
+    "mac": "C4:7C:8D:6A:0C:36",
+    "retryCount": 1,
+    "temperature": 21.2,
+    "temperatureLevel": 1,
+    "moisture": 8,
+    "moistureLevel": 0,
+    "light": 1428,
+    "lightLevel": 0,
+    "conductivity": 105,
+    "conductivityLevel": 0,
+    "battery": 99,
+    "batteryLow": false,
+    "batteryLevel": 2
 }
 ```
 
-- `id` - the id of the plant as defined in `config.h`
+- `id` - the id of the plant
 - `location` - the location where the Miflora is placed
 - `mac` - the MAC address of the Miflora
-- `retrycount` - number of retry attempts to retreive valid data from the Miflora
+- `retryCount` - number of retry attempts to retreive valid data from the Miflora
 - `temperature` - the measured temperature in degree Celsius
+- `temperatureLevel` - indicates if the temperature is 0=low, 1=medium or 2=high, configurable by minTemperature and maxTemperature
 - `moisture` - the measured moisture in percentage
+- `moistureLevel` - indicates if the moisture is 0=low, 1=medium or 2=high, configurable by minMoisture and maxMoisture
 - `light` - the measured light in lux
+- `lightLevel` - indicates if the light is 0=low, 1=medium or 2=high, configurable by minLight and maxLight
 - `conductivity` - the measured conductivity in uS/cm
+- `conductivityLevel` - indicates if the conductivity is 0=low, 1=medium or 2=high, configurable by minConductivity and maxConductivity
 - `battery` - the measured battery level in percentage
-- `batterylow` - indicates if the battery is low, based on the battery treshold defined in `config.h`
+- `batteryLow` - indicates if the battery is low (true or false), based on the battery low threshold
+- `batteryLevel` - indicates if the battery is 0=low, 1=medium or 2=high, based on the battery low and mediun thresholds
+
+__Note: the min and max values for each measurement can be found in the Flower Care app for [IOS](https://apps.apple.com/us/app/flower-care/id1095274672)__ or [Android](https://play.google.com/store/apps/details?id=com.huahuacaocao.flowercare&hl=de).
 
 ## Constraints
 
