@@ -146,7 +146,7 @@ Example json payload:
 - `batteryLow` - indicates if the battery is low (true or false), based on the battery low threshold
 - `batteryLevel` - indicates if the battery is 0=low, 1=medium or 2=high, based on the battery low and mediun thresholds
 
-__Note: the min and max values for each measurement can be found in the Flower Care app for [IOS](https://apps.apple.com/us/app/flower-care/id1095274672)__ or [Android](https://play.google.com/store/apps/details?id=com.huahuacaocao.flowercare&hl=de).
+__Note: the min and max values for each measurement can be found in the Flower Care app for [IOS](https://apps.apple.com/us/app/flower-care/id1095274672)__ or [Android](https://play.google.com/store/apps/details?id=com.huahuacaocao.flowercare&hl=en).
 
 ## Constraints
 
