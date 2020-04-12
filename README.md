@@ -1,4 +1,4 @@
-# Xiaomi Flora Plant sensors
+# Xiaomi Flora Plant sensors [![Build Status](https://travis-ci.com/RaymondMouthaan/miflora-esp32.svg?branch=master)](https://travis-ci.com/github/RaymondMouthaan/miflora-esp32)
 
 This [PlatformIO](https://platformio.org) project implements an ESP32 BLE client for Xiaomi Flora Plant sensors, pushing the measurements in json format to a MQTT broker.
 
