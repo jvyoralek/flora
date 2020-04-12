@@ -61,7 +61,7 @@ static const String sensorBaseTopic = String(MQTT_BASE_TOPIC) + "/" + String(DEV
 static const size_t deviceCapacity = JSON_OBJECT_SIZE(5) + 80;
 
 // the capacity of the sensor json document
-static const size_t sensorCapacity = JSON_OBJECT_SIZE(15) + 220;
+static const size_t sensorCapacity = JSON_OBJECT_SIZE(16) + 230;
 
 // boot count used to check if battery status should be read
 RTC_DATA_ATTR int bootCount = 0;
@@ -143,7 +143,6 @@ BLEClient *getFloraClient(BLEAddress floraAddress)
     Serial.println("- Connection failed, skipping");
     return nullptr;
   }
-
   Serial.println("- Connection successful");
   return floraClient;
 }
@@ -217,7 +216,7 @@ byte calculateMeasurementLevel(int current, int min, int max)
   }
 }
 
-bool readFloraDataCharacteristic(BLERemoteService *floraService, ArduinoJson::JsonDocument& jsonDocument, Sensor sensor)
+bool readFloraDataCharacteristic(BLERemoteService *floraService, ArduinoJson::JsonDocument &jsonDocument, Sensor sensor)
 {
   BLERemoteCharacteristic *floraCharacteristic = nullptr;
 
@@ -310,7 +309,7 @@ bool readFloraDataCharacteristic(BLERemoteService *floraService, ArduinoJson::Js
   return true;
 }
 
-bool readFloraBatteryCharacteristic(BLERemoteService *floraService, ArduinoJson::JsonDocument& jsonDocument)
+bool readFloraBatteryCharacteristic(BLERemoteService *floraService, ArduinoJson::JsonDocument &jsonDocument)
 {
   BLERemoteCharacteristic *floraCharacteristic = nullptr;
 
@@ -353,7 +352,7 @@ bool readFloraBatteryCharacteristic(BLERemoteService *floraService, ArduinoJson:
   return true;
 }
 
-bool processFloraService(BLERemoteService *floraService, bool readBattery, ArduinoJson::JsonDocument& jsonDocument, Sensor sensor)
+bool processFloraService(BLERemoteService *floraService, bool readBattery, ArduinoJson::JsonDocument &jsonDocument, Sensor sensor)
 {
   // set device in data mode
   if (!forceFloraServiceDataMode(floraService))
@@ -372,7 +371,7 @@ bool processFloraService(BLERemoteService *floraService, bool readBattery, Ardui
   return dataSuccess && batterySuccess;
 }
 
-bool processFloraDevice(BLEAddress floraAddress, bool getBattery, int tryCount, ArduinoJson::JsonDocument& jsonDocument, Sensor sensor)
+bool processFloraDevice(BLEAddress floraAddress, bool getBattery, int tryCount, ArduinoJson::JsonDocument &jsonDocument, Sensor sensor)
 {
   Serial.print("Processing Flora device at ");
   Serial.print(floraAddress.toString().c_str());
@@ -394,6 +393,9 @@ bool processFloraDevice(BLEAddress floraAddress, bool getBattery, int tryCount, 
     floraClient->disconnect();
     return false;
   }
+
+  Serial.printf("- %s has ble RSSI of %d\n", floraAddress.toString().c_str(), floraClient->getRssi());  
+  jsonDocument["rssi"] = floraClient->getRssi();
 
   // process devices data
   bool success = processFloraService(floraService, getBattery, jsonDocument, sensor);
@@ -509,9 +511,9 @@ void setup()
         }
         break;
       }
-      delay(1000);
+      delay(3000); // wait for another try
     }
-    delay(1500);
+    delay(2000); // wait for next sensor
   }
 
   // disconnect mqtt and wifi

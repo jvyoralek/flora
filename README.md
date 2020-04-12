@@ -101,7 +101,7 @@ Example json payload:
  - `ipaddress` - the ip address of the ESP32 given by the DHCP server
  - `mac` - the MAC address of the ESP32
  - `channel` - the channel of the WiFi network
- - `rssi` - Received Signal Strength Indicator
+ - `rssi` - the WiFi Received Signal Strength Indicator
 
 ### Sensor topic
 
@@ -112,19 +112,20 @@ Topic format: `<base_topic>/<device_id>/sensor/<location>/<plant_id>`
 Example json payload:
 ```
 {
-    "id": "orchid-2",
+    "id": "calathea-1",
     "location": "livingroom",
-    "mac": "C4:7C:8D:6A:0C:36",
+    "mac": "C4:7C:8D:67:57:07",
     "retryCount": 1,
+    "rssi": -75,
     "temperature": 21.2,
     "temperatureLevel": 1,
-    "moisture": 8,
+    "moisture": 4,
     "moistureLevel": 0,
-    "light": 1428,
-    "lightLevel": 0,
-    "conductivity": 105,
+    "light": 1203,
+    "lightLevel": 1,
+    "conductivity": 72,
     "conductivityLevel": 0,
-    "battery": 99,
+    "battery": 98,
     "batteryLow": false,
     "batteryLevel": 2
 }
@@ -134,6 +135,7 @@ Example json payload:
 - `location` - the location where the Miflora is placed
 - `mac` - the MAC address of the Miflora
 - `retryCount` - number of retry attempts to retreive valid data from the Miflora
+- `rssi` - the BLE Received Signal Strength Indicator
 - `temperature` - the measured temperature in degree Celsius
 - `temperatureLevel` - indicates if the temperature is 0=low, 1=medium or 2=high, configurable by minTemperature and maxTemperature
 - `moisture` - the measured moisture in percentage
