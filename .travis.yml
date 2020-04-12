@@ -36,5 +36,8 @@ install:
     - platformio upgrade --dev
     - platformio update
     
+before_script:
+    - cp example/config.h.example include/config.h
+    
 script:
     - platformio run
