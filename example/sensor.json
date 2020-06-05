@@ -1,0 +1,18 @@
+{
+    "id": "calathea-1",
+    "location": "livingroom",
+    "mac": "C4:7C:8D:67:57:07",
+    "retryCount": 1,
+    "rssi": -75,
+    "temperature": 21.2,
+    "temperatureLevel": 1,
+    "moisture": 4,
+    "moistureLevel": 0,
+    "light": 1203,
+    "lightLevel": 1,
+    "conductivity": 72,
+    "conductivityLevel": 0,
+    "battery": 98,
+    "batteryLow": false,
+    "batteryLevel": 2
+}
